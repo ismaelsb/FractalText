@@ -7,7 +7,7 @@ output:
     toc: yes
 ---
 
-Código disponible en <https://github.com/ismaelsb/FractalText>
+Code available here: <https://github.com/ismaelsb/FractalText>
 
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}

@@ -1,6 +1,6 @@
 # FractalText
 
-Código disponible en <https://github.com/ismaelsb/FractalText>
+Code available here: <https://github.com/ismaelsb/FractalText>
 
 
 
