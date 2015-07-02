@@ -1,4 +1,6 @@
 # FractalText
 Print any word as a fractal
 
-https://ismaelsb.shinyapps.io/FractalText
+App  https://ismaelsb.shinyapps.io/FractalText
+
+Code: http://rpubs.com/ismaelsb/FractalText
