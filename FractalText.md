@@ -1,5 +1,7 @@
 # FractalText
 
+Print any word as a fractal
+
 Code available here: <https://github.com/ismaelsb/FractalText>
 
 
@@ -86,15 +88,21 @@ See also the code for character matrices in the link above
 
 
 ```r
-plotfractaltext <- function(word="", dots=30000, iter=3, textcolor='coral3', backcolor='cornsilk2', dotsize=.01) {
-
-  fractal <- fractaltext(word, dots, iter)
+plotfractaltext <- function(word, dots=30000, iter=3, textcolor='coral3', backcolor='cornsilk2', dotsize=.01, computed=F) {
+  
+  #word can be: or a string of characters or the return of function 'fractaltext'.
+  #In the last case, specify with the argument computed=TRUE
+  #this is done in order to avoid recalculations when you just want to change the plot
+  
+  if (computed==F) fractal <- fractaltext(word, dots, iter) #compute and then plot
+  else fractal <- word #then just plot:
 
   ggplot(fractal, aes(x=x, y=y)) +
-    geom_point(size=dotsize,alpha=0.4, color=textcolor) + coord_fixed() +
+    geom_point(size=dotsize,alpha=0.5, color=textcolor) + coord_fixed() +
     guides(fill=FALSE) + 
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
     theme(panel.background = element_rect(fill = backcolor))+
+    theme(plot.background  = element_rect(fill = backcolor))+
     theme(axis.text.x=element_blank(), axis.text.y=element_blank(),
           axis.title.x=element_blank(), axis.title.y=element_blank(),
           axis.ticks=element_blank())
@@ -104,8 +112,16 @@ plotfractaltext <- function(word="", dots=30000, iter=3, textcolor='coral3', bac
 
 
 ```r
+#compute and then plot
 plotfractaltext("vosgeda",40000,4)
 ```
 
 ![](FractalText_files/figure-html/unnamed-chunk-7-1.png) 
+
+```r
+#compute
+#fractal <- fractaltext("vosgeda",40000,4)
+#then just plot
+#plotfractaltext(fractal, computed=T)
+```
 

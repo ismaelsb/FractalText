@@ -1,14 +1,13 @@
 ---
-title: "FractalText"
+title: "Fractal Text"
 output: 
   html_document: 
     fig_height: 3
     fig_width: 9
     keep_md: yes
     toc: yes
+runtime: shiny
 ---
-
-Print any word as a fractal
 
 Code available here: <https://github.com/ismaelsb/FractalText>
 
@@ -19,7 +18,7 @@ library(ggplot2)
 
 ```
 
-```{r, echo=TRUE}
+```{r, echo=F}
 
 textmatrix <- function (word) {
   
@@ -41,7 +40,7 @@ textmatrix <- function (word) {
 
 ```
 
-```{r, echo=TRUE}
+```{r, echo=F}
 
 fractaltext <- function(word, dots, iter) {
   
@@ -91,15 +90,13 @@ fractaltext <- function(word, dots, iter) {
 
 ```
 
-```{r, echo=TRUE}
+```{r, echo=F}
 
 blockarea <- function (block, D) abs(det(matrix(D[block,3:6],2,2)))
 
 ```
 
-See also the code for character matrices in the link above
-
-```{r, echo=FALSE}
+```{r, echo=F}
 
 charmatrix <- function (c) {
   
@@ -473,7 +470,7 @@ charmatrix <- function (c) {
 
 ```
 
-```{r, echo=TRUE}
+```{r, echo=F}
 
 plotfractaltext <- function(word, dots=30000, iter=3, textcolor='coral3', backcolor='cornsilk2', dotsize=.01, computed=F) {
   
@@ -498,17 +495,54 @@ plotfractaltext <- function(word, dots=30000, iter=3, textcolor='coral3', backco
 
 ```
 
-```{r, echo=TRUE}
+```{r, echo=FALSE}
+
+shinyUI(fluidPage(
+
+  titlePanel(""),
+
+  sidebarLayout(
+
+    sidebarPanel(
+  
+      sliderInput("dots", label = "Number of dots:",
+              min = 10000, max = 60000, value = 40000, step = 5000),
+      
+      textInput("word", "Text:", "vosgeda")
+      
+    ),
+
+    mainPanel(
+      radioButtons("iter", "Number of iterations:", 1:6, selected=3, inline=F)
+      
+    )
+  )
+))
 
 
-#compute and then plot
-plotfractaltext("vosgeda",40000,4)
+inputPanel(
+  selectInput("textcolor", label = "Text color:",
+              choices = c('cadetblue','antiquewhite','aquamarine3','coral3','cornsilk2','cyan3','brown3','darkolivegreen4','dodgerblue3','darkorange2','firebrick3','darkseagreen','darksalmon','darkslategray3','darkorchid2','floralwhite','khaki3','lavenderblush3','lightblue3','honeydew3','lightcyan2','hotpink4','indianred3','lightpink2','ivory3','lightsalmon2','lightsteelblue3','mistyrose2','lightyellow1','navajowhite1','paleturquoise2','palegreen3','rosybrown2','royalblue3','salmon','seagreen','sienna2','turquoise3','wheat2','black','gray10','gray30','gray50','gray70','gray90','white'), selected = 'coral3'),
+  
+  selectInput("backcolor", label = "Background color:",
+              choices = c('cadetblue','antiquewhite','aquamarine3','coral3','cornsilk2','cyan3','brown3','darkolivegreen4','dodgerblue3','darkorange2','firebrick3','darkseagreen','darksalmon','darkslategray3','darkorchid2','floralwhite','khaki3','lavenderblush3','lightblue3','honeydew3','lightcyan2','hotpink4','indianred3','lightpink2','ivory3','lightsalmon2','lightsteelblue3','mistyrose2','lightyellow1','navajowhite1','paleturquoise2','palegreen3','rosybrown2','royalblue3','salmon','seagreen','sienna2','turquoise3','wheat2','black','gray10','gray30','gray50','gray70','gray90','white'), selected = 'cornsilk2')
+  
+)
 
-#compute
-#fractal <- fractaltext("vosgeda",40000,4)
-#then just plot
-#plotfractaltext(fractal, computed=T)
 
+renderPlot({
+  
+  #compute
+  #fractal <- fractaltext(word=input$word, dots=input$dots, iter=input$iter)
+  
+  #then just plot
+  #plotfractaltext(word=fractal, textcolor=input$textcolor, backcolor=input$backcolor)
+  
+  #compute and plot
+  plotfractaltext(word=input$word, dots=input$dots, iter=input$iter, textcolor=input$textcolor, backcolor=input$backcolor)
+  
+})
 
 ```
+
 
