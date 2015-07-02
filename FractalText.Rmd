@@ -475,7 +475,7 @@ charmatrix <- function (c) {
 
 ```{r, echo=TRUE}
 
-plotfractaltext <- function(word, dots=30000, iter=3, textcolor='coral3', backcolor='cornsilk2', dotsize=.01, computed=F) {
+plotfractaltext <- function(word, dots=30000, iter=3, textcolor='coral3', backcolor='cornsilk2', dotsize=.5, computed=F) {
   
   #word can be: or a string of characters or the return of function 'fractaltext'.
   #In the last case, specify with the argument computed=TRUE

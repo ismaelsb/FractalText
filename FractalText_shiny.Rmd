@@ -9,7 +9,9 @@ output:
 runtime: shiny
 ---
 
-Code available here: <https://github.com/ismaelsb/FractalText>
+Print any word as a fractal
+
+Code available here: <http://rpubs.com/ismaelsb/FractalText>
 
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
@@ -472,7 +474,7 @@ charmatrix <- function (c) {
 
 ```{r, echo=F}
 
-plotfractaltext <- function(word, dots=30000, iter=3, textcolor='coral3', backcolor='cornsilk2', dotsize=.01, computed=F) {
+plotfractaltext <- function(word, dots=30000, iter=3, textcolor='coral3', backcolor='cornsilk2', dotsize=1, computed=F) {
   
   #word can be: or a string of characters or the return of function 'fractaltext'.
   #In the last case, specify with the argument computed=TRUE
@@ -506,9 +508,9 @@ shinyUI(fluidPage(
     sidebarPanel(
   
       sliderInput("dots", label = "Number of dots:",
-              min = 10000, max = 60000, value = 40000, step = 5000),
+              min = 10000, max = 100000, value = 40000, step = 5000),
       
-      textInput("word", "Text:", "vosgeda")
+      textInput("word", "Text:", "gestalt")
       
     ),
 
@@ -522,10 +524,10 @@ shinyUI(fluidPage(
 
 inputPanel(
   selectInput("textcolor", label = "Text color:",
-              choices = c('cadetblue','antiquewhite','aquamarine3','coral3','cornsilk2','cyan3','brown3','darkolivegreen4','dodgerblue3','darkorange2','firebrick3','darkseagreen','darksalmon','darkslategray3','darkorchid2','floralwhite','khaki3','lavenderblush3','lightblue3','honeydew3','lightcyan2','hotpink4','indianred3','lightpink2','ivory3','lightsalmon2','lightsteelblue3','mistyrose2','lightyellow1','navajowhite1','paleturquoise2','palegreen3','rosybrown2','royalblue3','salmon','seagreen','sienna2','turquoise3','wheat2','black','gray10','gray30','gray50','gray70','gray90','white'), selected = 'coral3'),
+              choices = c('cadetblue','burlywood4','antiquewhite','aquamarine3','azure1','coral3','cornsilk','cornsilk2','cyan3','darkcyan','brown3','brown4','darkolivegreen4','dodgerblue3','dodgerblue4','darkorange2','firebrick3','darkred','darkslategray','darkseagreen','darksalmon','darkslategray3','deeppink4','darkorchid2','floralwhite','khaki3','khaki4','lavenderblush3','lightblue3','honeydew3','lightcyan2','hotpink4','indianred3','indianred4','lightpink2','ivory','ivory3','lightsalmon2','midnightblue','mintcream','lightsteelblue3','mistyrose2','lightyellow1','navajowhite1','orangered4','paleturquoise2','palegreen3','rosybrown2','royalblue3','salmon','seagreen','seashell1','sienna2','turquoise3','wheat2','black','gray10','gray30','gray50','gray70','gray90','white'), selected = 'coral3'),
   
   selectInput("backcolor", label = "Background color:",
-              choices = c('cadetblue','antiquewhite','aquamarine3','coral3','cornsilk2','cyan3','brown3','darkolivegreen4','dodgerblue3','darkorange2','firebrick3','darkseagreen','darksalmon','darkslategray3','darkorchid2','floralwhite','khaki3','lavenderblush3','lightblue3','honeydew3','lightcyan2','hotpink4','indianred3','lightpink2','ivory3','lightsalmon2','lightsteelblue3','mistyrose2','lightyellow1','navajowhite1','paleturquoise2','palegreen3','rosybrown2','royalblue3','salmon','seagreen','sienna2','turquoise3','wheat2','black','gray10','gray30','gray50','gray70','gray90','white'), selected = 'cornsilk2')
+              choices = c('cadetblue','burlywood4','antiquewhite','aquamarine3','azure1','coral3','cornsilk','cornsilk2','cyan3','darkcyan','brown3','brown4','darkolivegreen4','dodgerblue3','dodgerblue4','darkorange2','firebrick3','darkred','darkslategray','darkseagreen','darksalmon','darkslategray3','deeppink4','darkorchid2','floralwhite','khaki3','khaki4','lavenderblush3','lightblue3','honeydew3','lightcyan2','hotpink4','indianred3','indianred4','lightpink2','ivory','ivory3','lightsalmon2','midnightblue','mintcream','lightsteelblue3','mistyrose2','lightyellow1','navajowhite1','orangered4','paleturquoise2','palegreen3','rosybrown2','royalblue3','salmon','seagreen','seashell1','sienna2','turquoise3','wheat2','black','gray10','gray30','gray50','gray70','gray90','white'), selected = 'cornsilk2')
   
 )
 
