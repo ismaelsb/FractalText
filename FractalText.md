@@ -2,6 +2,8 @@
 
 Print any word as a fractal
 
+Interactive web app: <https://ismaelsb.shinyapps.io/FractalText>
+
 Code available here: <https://github.com/ismaelsb/FractalText>
 
 
@@ -13,17 +15,66 @@ textmatrix <- function (word) {
   
   #assembles the blocks for every character in a word
   
-  M=matrix(0,0,6) #empty matrix with 6 columns
+  word <- gsub("[[:digit:]]+","",word) #remove digits
+  word <- gsub("[ ]{2,}"," ",word) #remove all spaces but the first in a row
   
-  for (i in 1:nchar(word)){
+  M=matrix(0,0,6) #empty matrix with 6 columns
+  K <- 0 #accumulated kerring
+  m <- 0 #accumulated rows
+  
+  if (word != "") {
+  
+    for (i in 1:nchar(word)){
     
-    C <- charmatrix(substr(word, i, i))
-    C <- C + 5*(i-1) * rep(1,dim(C)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
-    M <- rbind(M,C)
+      C <- charmatrix(substr(word, i, i))
+      C <- C + 5*(i-1) * rep(1,dim(C)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+      M <- rbind(M,C)
+      
+      if (substr(word, i, i) == "l" | substr(word, i, i) == "L") {
+        
+        K <- K + 0.7
+        M <- M + 0.7 * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+      }
+      
+      else if (substr(word, i, i) == "f" | substr(word, i, i) == "F") {
+        
+        K <- K + 0.4
+        M <- M + 0.4 * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+      }
+      
+      else if (m>0 & (substr(word, i, i) == "j" | substr(word, i, i) == "J")) {
+        
+        K <- K + 0.3
+        M[1:m,] <- M[1:m,] + 0.3 * rep(1,m) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+      }
+      
+      else if (substr(word, i, i) == "t" | substr(word, i, i) == "T") {
+        
+        K <- K + 0.2
+        M <- M + 0.2 * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+        if (m>0){
+          
+          K <- K + 0.2
+          M[1:m,] <- M[1:m,] + 0.2 * rep(1,m) %*% matrix(c(1,0,0,0,0,0),1,6)
+          
+          }
+        
+      }
+      
+      m <- dim(M)[1] #accumulated rows before the next character
+      
+    }
+    
+    #reajust to left margin by substracting the accumulated kerring
+    M <- M - K * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
     
   }
   
-  return(M)
+  return(list(M,K))
   
 }
 ```
@@ -32,19 +83,32 @@ textmatrix <- function (word) {
 ```r
 fractaltext <- function(word, dots, iter) {
   
-  a <- nchar(word)*(4+1)-1 #character width = 4
+  word <- gsub("[[:digit:]]+","",word) #remove digits
+  word <- gsub("[ ]{2,}"," ",word) #remove all spaces but the first in a row
+  
+  if (word == "" | word == " ") {
+    
+    fractal <- as.data.frame(matrix(NA,0,2))
+    names(fractal) <- c("x","y")
+    return(fractal)
+    
+  }
+  
+  textlist <- textmatrix(word)
+  D <- textlist[[1]] #textmatrix
+  K <- textlist[[2]] #kerring
+  
+  nblock=dim(D)[1] #number of blocks
+  
+  a <- nchar(word)*(4+1)-1-K #character width = 4
   b <- 7 #character height =7
   
   S=matrix(c(1/a,0,0,1/b),2,2) #normalization
   W=matrix(c(a,0,0,b),2,2) #denormalization
   
-  D <- textmatrix(word)
-  nblock=dim(D)[1] #number of blocks
-  
   blockareas <- prop.table(apply(matrix(1:nblock) ,1 ,blockarea, D))
   
   fractal <- matrix(NA,dots,2)
-  
   
   for (d in 1:dots){
     
@@ -88,7 +152,7 @@ See also the code for character matrices in the link above
 
 
 ```r
-plotfractaltext <- function(word, dots=30000, iter=3, textcolor='coral3', backcolor='cornsilk2', dotsize=1, computed=F) {
+plotfractaltext <- function(word, dots=30000, iter=3, textcolor='coral3', backcolor='cornsilk2', dotsize=.5, computed=F) {
   
   #word can be: or a string of characters or the return of function 'fractaltext'.
   #In the last case, specify with the argument computed=TRUE

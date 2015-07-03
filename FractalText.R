@@ -5,35 +5,97 @@ textmatrix <- function (word) {
   
   #assembles the blocks for every character in a word
   
-  M=matrix(0,0,6) #empty matrix with 6 columns
+  word <- gsub("[[:digit:]]+","",word) #remove digits
+  word <- gsub("[ ]{2,}"," ",word) #remove all spaces but the first in a row
   
-  for (i in 1:nchar(word)){
+  M=matrix(0,0,6) #empty matrix with 6 columns
+  K <- 0 #accumulated kerring
+  m <- 0 #accumulated rows
+  
+  if (word != "") {
+  
+    for (i in 1:nchar(word)){
     
-    C <- charmatrix(substr(word, i, i))
-    C <- C + 5*(i-1) * rep(1,dim(C)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
-    M <- rbind(M,C)
+      C <- charmatrix(substr(word, i, i))
+      C <- C + 5*(i-1) * rep(1,dim(C)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+      M <- rbind(M,C)
+      
+      if (substr(word, i, i) == "l" | substr(word, i, i) == "L") {
+        
+        K <- K + 0.7
+        M <- M + 0.7 * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+      }
+      
+      else if (substr(word, i, i) == "f" | substr(word, i, i) == "F") {
+        
+        K <- K + 0.4
+        M <- M + 0.4 * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+      }
+      
+      else if (m>0 & (substr(word, i, i) == "j" | substr(word, i, i) == "J")) {
+        
+        K <- K + 0.3
+        M[1:m,] <- M[1:m,] + 0.3 * rep(1,m) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+      }
+      
+      else if (substr(word, i, i) == "t" | substr(word, i, i) == "T") {
+        
+        K <- K + 0.2
+        M <- M + 0.2 * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+        if (m>0){
+          
+          K <- K + 0.2
+          M[1:m,] <- M[1:m,] + 0.2 * rep(1,m) %*% matrix(c(1,0,0,0,0,0),1,6)
+          
+          }
+        
+      }
+      
+      m <- dim(M)[1] #accumulated rows before the next character
+      
+    }
+    
+    #reajust to left margin by substracting the accumulated kerring
+    M <- M - K * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
     
   }
   
-  return(M)
+  return(list(M,K))
   
 }
 
 fractaltext <- function(word, dots, iter) {
   
-  a <- nchar(word)*(4+1)-1 #character width = 4
+  word <- gsub("[[:digit:]]+","",word) #remove digits
+  word <- gsub("[ ]{2,}"," ",word) #remove all spaces but the first in a row
+  
+  if (word == "" | word == " ") {
+    
+    fractal <- as.data.frame(matrix(NA,0,2))
+    names(fractal) <- c("x","y")
+    return(fractal)
+    
+  }
+  
+  textlist <- textmatrix(word)
+  D <- textlist[[1]] #textmatrix
+  K <- textlist[[2]] #kerring
+  
+  nblock=dim(D)[1] #number of blocks
+  
+  a <- nchar(word)*(4+1)-1-K #character width = 4
   b <- 7 #character height =7
   
   S=matrix(c(1/a,0,0,1/b),2,2) #normalization
   W=matrix(c(a,0,0,b),2,2) #denormalization
   
-  D <- textmatrix(word)
-  nblock=dim(D)[1] #number of blocks
-  
   blockareas <- prop.table(apply(matrix(1:nblock) ,1 ,blockarea, D))
   
   fractal <- matrix(NA,dots,2)
-  
   
   for (d in 1:dots){
     
@@ -81,7 +143,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="a") {
+  else if (c=="a" | c=="A") {
     
     B[[1]] <- c(1,0,0,3,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,3,0,3,-1,0)
@@ -94,7 +156,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="e") {
+  else if (c=="e" | c=="E") {
     
     B[[1]] <- c(1,0,0,3,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,4,0,3,-1,0)
@@ -106,7 +168,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="i") {
+  else if (c=="i" | c=="I") {
     
     B[[1]] <- c(0,0,4,0,0,1) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(0,6,4,0,0,1)
@@ -116,7 +178,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="o") {
+  else if (c=="o" | c=="O") {
     
     B[[1]] <- c(4,1,-4,0,0,-1) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(0,6,4,0,0,1)
@@ -127,7 +189,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="u") {
+  else if (c=="u" | c=="U") {
     
     B[[1]] <- c(0,7,0,-3,1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(0,4,0,-3,1,0)
@@ -139,7 +201,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="b") {
+  else if (c=="b" | c=="B") {
     
     B[[1]] <- c(1,0,0,3,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,4,0,3,-1,0)
@@ -153,7 +215,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="c") {
+  else if (c=="c" | c=="C") {
     
     B[[1]] <- c(1,0,3,0,0,1) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,0,0,3,-1,0)
@@ -164,7 +226,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="d") {
+  else if (c=="d" | c=="D") {
     
     B[[1]] <- c(2,1,-2,0,0,-1) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,1,0,5,-1,0)
@@ -177,7 +239,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="f") {
+  else if (c=="f" | c=="F") {
     
     B[[1]] <- c(1,0,0,3,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,4,0,3,-1,0)
@@ -188,7 +250,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="g") {
+  else if (c=="g" | c=="G") {
     
     B[[1]] <- c(2,3,2,0,0,1) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(3,3,0,-3,1,0)
@@ -201,7 +263,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="h") {
+  else if (c=="h" | c=="H") {
     
     B[[1]] <- c(1,0,0,4,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,4,0,3,-1,0)
@@ -213,7 +275,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="j") {
+  else if (c=="j" | c=="J") {
     
     B[[1]] <- c(3,7,0,-3,1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(3,4,0,-3,1,0)
@@ -224,7 +286,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="k") {
+  else if (c=="k" | c=="K") {
     
     B[[1]] <- c(1,0,0,4,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,4,0,3,-1,0)
@@ -235,9 +297,9 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="l") {
+  else if (c=="l" | c=="L") {
     
-    B[[1]] <- c(0,0,4,0,0,1) #coodinates for (origin x, origin y, L11, L21, L21, L22)
+    B[[1]] <- c(0,0,3.5,0,0,1) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,1,0,3,-1,0)
     B[[3]] <- c(1,4,0,3,-1,0)
     
@@ -245,7 +307,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="m") {
+  else if (c=="m" | c=="M") {
     
     B[[1]] <- c(1,0,0,4,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,4,0,3,-1,0)
@@ -258,7 +320,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="n") {
+  else if (c=="n" | c=="N") {
     
     B[[1]] <- c(1,0,0,4,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,4,0,3,-1,0)
@@ -270,7 +332,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="p") {
+  else if (c=="p" | c=="P") {
     
     B[[1]] <- c(1,0,0,3,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,3,0,3,-1,0)
@@ -282,7 +344,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="q") {
+  else if (c=="q" | c=="Q") {
     
     B[[1]] <- c(1,1,0,3,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,4,0,3,-1,0)
@@ -295,7 +357,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="r") {
+  else if (c=="r" | c=="R") {
     
     B[[1]] <- c(1,0,0,3,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,3,0,3,-1,0)
@@ -308,7 +370,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="s") {
+  else if (c=="s" | c=="S") {
     
     B[[1]] <- c(0,0,3,0,0,1) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(4,0,0,4,-1,0)
@@ -320,7 +382,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="t") {
+  else if (c=="t" | c=="T") {
     
     B[[1]] <- c(2.5,0,0,3,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(2.5,3,0,3,-1,0)
@@ -330,7 +392,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="v") {
+  else if (c=="v" | c=="V") {
     
     B[[1]] <- c(0,7,0,-3,1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(0,4,0.75,-3,1,0)
@@ -342,7 +404,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="w") {
+  else if (c=="w" | c=="W") {
     
     B[[1]] <- c(0,7,0.25,-3.5,0.5,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(0.25,3.5,0.25,-3.5,0.5,0)
@@ -355,7 +417,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="x") {
+  else if (c=="x" | c=="X") {
     
     B[[1]] <- c(1,0,1,3.5,-1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(0,7,1,-3.5,1,0)
@@ -366,7 +428,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="y") {
+  else if (c=="y" | c=="Y") {
     
     B[[1]] <- c(0,7,1,-4,1,0) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(3,3,1,4,-1,0)
@@ -376,7 +438,7 @@ charmatrix <- function (c) {
     
   }
   
-  else if (c=="z") {
+  else if (c=="z" | c=="Z") {
     
     B[[1]] <- c(0,0,4,0,0,1) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(0,6,4,0,0,1)
@@ -437,7 +499,7 @@ charmatrix <- function (c) {
   
 }
 
-plotfractaltext <- function(word, dots=30000, iter=3, textcolor='coral3', backcolor='cornsilk2', dotsize=.01, computed=F) {
+plotfractaltext <- function(word, dots=30000, iter=3, textcolor='coral3', backcolor='cornsilk2', dotsize=.5, computed=F) {
   
   #word can be: or a string of characters or the return of function 'fractaltext'.
   #In the last case, specify with the argument computed=TRUE

@@ -1,5 +1,5 @@
 ---
-title: "Fractal Text"
+title: "Fractal Text 1.1"
 output: 
   html_document: 
     fig_height: 3
@@ -9,10 +9,11 @@ output:
 runtime: shiny
 ---
 
-Print any word as a fractal
+Print any word as a fractal.
 
 Code available here: <http://rpubs.com/ismaelsb/FractalText>
 
+Now with kerring.
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 
@@ -26,17 +27,66 @@ textmatrix <- function (word) {
   
   #assembles the blocks for every character in a word
   
-  M=matrix(0,0,6) #empty matrix with 6 columns
+  word <- gsub("[[:digit:]]+","",word) #remove digits
+  word <- gsub("[ ]{2,}"," ",word) #remove all spaces but the first in a row
   
-  for (i in 1:nchar(word)){
+  M=matrix(0,0,6) #empty matrix with 6 columns
+  K <- 0 #accumulated kerring
+  m <- 0 #accumulated rows
+  
+  if (word != "") {
+  
+    for (i in 1:nchar(word)){
     
-    C <- charmatrix(substr(word, i, i))
-    C <- C + 5*(i-1) * rep(1,dim(C)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
-    M <- rbind(M,C)
+      C <- charmatrix(substr(word, i, i))
+      C <- C + 5*(i-1) * rep(1,dim(C)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+      M <- rbind(M,C)
+      
+      if (substr(word, i, i) == "l" | substr(word, i, i) == "L") {
+        
+        K <- K + 0.7
+        M <- M + 0.7 * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+      }
+      
+      else if (substr(word, i, i) == "f" | substr(word, i, i) == "F") {
+        
+        K <- K + 0.4
+        M <- M + 0.4 * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+      }
+      
+      else if (m>0 & (substr(word, i, i) == "j" | substr(word, i, i) == "J")) {
+        
+        K <- K + 0.3
+        M[1:m,] <- M[1:m,] + 0.3 * rep(1,m) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+      }
+      
+      else if (substr(word, i, i) == "t" | substr(word, i, i) == "T") {
+        
+        K <- K + 0.2
+        M <- M + 0.2 * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
+        
+        if (m>0){
+          
+          K <- K + 0.2
+          M[1:m,] <- M[1:m,] + 0.2 * rep(1,m) %*% matrix(c(1,0,0,0,0,0),1,6)
+          
+          }
+        
+      }
+      
+      m <- dim(M)[1] #accumulated rows before the next character
+      
+    }
+    
+    #reajust to left margin by substracting the accumulated kerring
+    M <- M - K * rep(1,dim(M)[1]) %*% matrix(c(1,0,0,0,0,0),1,6)
     
   }
   
-  return(M)
+  return(list(M,K))
   
 }
 
@@ -46,19 +96,32 @@ textmatrix <- function (word) {
 
 fractaltext <- function(word, dots, iter) {
   
-  a <- nchar(word)*(4+1)-1 #character width = 4
+  word <- gsub("[[:digit:]]+","",word) #remove digits
+  word <- gsub("[ ]{2,}"," ",word) #remove all spaces but the first in a row
+  
+  if (word == "" | word == " ") {
+    
+    fractal <- as.data.frame(matrix(NA,0,2))
+    names(fractal) <- c("x","y")
+    return(fractal)
+    
+  }
+  
+  textlist <- textmatrix(word)
+  D <- textlist[[1]] #textmatrix
+  K <- textlist[[2]] #kerring
+  
+  nblock=dim(D)[1] #number of blocks
+  
+  a <- nchar(word)*(4+1)-1-K #character width = 4
   b <- 7 #character height =7
   
   S=matrix(c(1/a,0,0,1/b),2,2) #normalization
   W=matrix(c(a,0,0,b),2,2) #denormalization
   
-  D <- textmatrix(word)
-  nblock=dim(D)[1] #number of blocks
-  
   blockareas <- prop.table(apply(matrix(1:nblock) ,1 ,blockarea, D))
   
   fractal <- matrix(NA,dots,2)
-  
   
   for (d in 1:dots){
     
@@ -270,7 +333,7 @@ charmatrix <- function (c) {
   
   else if (c=="l" | c=="L") {
     
-    B[[1]] <- c(0,0,4,0,0,1) #coodinates for (origin x, origin y, L11, L21, L21, L22)
+    B[[1]] <- c(0,0,3.5,0,0,1) #coodinates for (origin x, origin y, L11, L21, L21, L22)
     B[[2]] <- c(1,1,0,3,-1,0)
     B[[3]] <- c(1,4,0,3,-1,0)
     
@@ -524,10 +587,10 @@ shinyUI(fluidPage(
 
 inputPanel(
   selectInput("textcolor", label = "Text color:",
-              choices = c('cadetblue','burlywood4','antiquewhite','aquamarine3','azure1','coral3','cornsilk','cornsilk2','cyan3','darkcyan','brown3','brown4','darkolivegreen4','dodgerblue3','dodgerblue4','darkorange2','firebrick3','darkred','darkslategray','darkseagreen','darksalmon','darkslategray3','deeppink4','darkorchid2','floralwhite','khaki3','khaki4','lavenderblush3','lightblue3','honeydew3','lightcyan2','hotpink4','indianred3','indianred4','lightpink2','ivory','ivory3','lightsalmon2','midnightblue','mintcream','lightsteelblue3','mistyrose2','lightyellow1','navajowhite1','orangered4','paleturquoise2','palegreen3','rosybrown2','royalblue3','salmon','seagreen','seashell1','sienna2','turquoise3','wheat2','black','gray10','gray30','gray50','gray70','gray90','white'), selected = 'coral3'),
+              choices = c('antiquewhite','aquamarine3','azure1','brown3','brown4','burlywood4','cadetblue','coral3','cornsilk','cornsilk2','cyan3','darkcyan','darkolivegreen4','darkorange2','darkred','darkslategray','darkseagreen','darksalmon','darkslategray3','deeppink4','dodgerblue3','darkorchid2','dodgerblue4','firebrick3','floralwhite','honeydew3','hotpink4','khaki3','khaki4','lavenderblush3','lightblue3','lightcyan2','lightpink2','lightsalmon2','lightsteelblue3','lightyellow1','indianred3','indianred4','ivory','ivory3','midnightblue','mintcream','mistyrose2','navajowhite1','orangered4','paleturquoise2','palegreen3','rosybrown2','royalblue3','salmon','seagreen','seashell1','sienna2','turquoise3','wheat2','black','gray10','gray30','gray50','gray70','gray90','white'), selected = 'coral3'),
   
   selectInput("backcolor", label = "Background color:",
-              choices = c('cadetblue','burlywood4','antiquewhite','aquamarine3','azure1','coral3','cornsilk','cornsilk2','cyan3','darkcyan','brown3','brown4','darkolivegreen4','dodgerblue3','dodgerblue4','darkorange2','firebrick3','darkred','darkslategray','darkseagreen','darksalmon','darkslategray3','deeppink4','darkorchid2','floralwhite','khaki3','khaki4','lavenderblush3','lightblue3','honeydew3','lightcyan2','hotpink4','indianred3','indianred4','lightpink2','ivory','ivory3','lightsalmon2','midnightblue','mintcream','lightsteelblue3','mistyrose2','lightyellow1','navajowhite1','orangered4','paleturquoise2','palegreen3','rosybrown2','royalblue3','salmon','seagreen','seashell1','sienna2','turquoise3','wheat2','black','gray10','gray30','gray50','gray70','gray90','white'), selected = 'cornsilk2')
+              choices = c('antiquewhite','aquamarine3','azure1','brown3','brown4','burlywood4','cadetblue','coral3','cornsilk','cornsilk2','cyan3','darkcyan','darkolivegreen4','darkorange2','darkred','darkslategray','darkseagreen','darksalmon','darkslategray3','deeppink4','dodgerblue3','darkorchid2','dodgerblue4','firebrick3','floralwhite','honeydew3','hotpink4','khaki3','khaki4','lavenderblush3','lightblue3','lightcyan2','lightpink2','lightsalmon2','lightsteelblue3','lightyellow1','indianred3','indianred4','ivory','ivory3','midnightblue','mintcream','mistyrose2','navajowhite1','orangered4','paleturquoise2','palegreen3','rosybrown2','royalblue3','salmon','seagreen','seashell1','sienna2','turquoise3','wheat2','black','gray10','gray30','gray50','gray70','gray90','white'), selected = 'cornsilk2')
   
 )
 
