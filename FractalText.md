@@ -107,35 +107,35 @@ fractaltext <- function(word, dots, iter) {
   W=matrix(c(a,0,0,b),2,2) #denormalization
   
   blockareas <- prop.table(apply(matrix(1:nblock) ,1 ,blockarea, D))
+  blockndots <- blockareas*dots #number of dots sent to each block
+  blockstartindex <- floor(cumsum(c(0,blockndots[1:nblock]))+1) #start index for each block
+  blockstartindex[nblock+1] <- dots+1 #adjust
   
-  fractal <- matrix(NA,dots,2)
+  P <- matrix(runif(2*dots),2,dots)
   
-  for (d in 1:dots){
+  for (i in 1:iter) {
     
-    p <- matrix(runif(2),2,1)
+    for (j in 1:nblock) {
     
-    for (i in 1:iter){
-      
-      block <- sample(1:nblock, 1, replace = T, prob = blockareas) 
-      
-      L <- matrix(D[block,3:6],2,2) #linear deformation matrix
-      O <- matrix(D[block,1:2],2,1) #translation vector
-      
-      p <- L %*% p + O
-      
-      p <- S %*% p #normalization
-      
+      L <- matrix(D[j,3:6],2,2) #linear deformation matrix
+      O <- matrix(D[j,1:2],2,1) #translation vector
+    
+      P[,blockstartindex[j]:(blockstartindex[j+1]-1)] <- L %*% P[,blockstartindex[j]:(blockstartindex[j+1]-1)] + O %*% rep(1,blockstartindex[j+1]-blockstartindex[j])
+    
     }
     
-    p <- W %*% p #denormalization
+    P <- S %*% P #normalization
     
-    fractal[d,] <- p
-    
+    P <- P[,sample(1:dots, dots, replace = F)] #shuffle the dots
     
   }
   
-  fractal <- as.data.frame(fractal)
+  P <- W %*% P #denormalization
+  
+  
+  fractal <- as.data.frame(t(P))
   names(fractal) <- c("x","y")
+  
   return(fractal)
   
 }
