@@ -119,9 +119,13 @@ fractaltext <- function(word, dots, iter) {
     
       L <- matrix(D[j,3:6],2,2) #linear deformation matrix
       O <- matrix(D[j,1:2],2,1) #translation vector
+      
+      if (blockstartindex[j] != blockstartindex[j+1]) {
+      
+        P[,blockstartindex[j]:(blockstartindex[j+1]-1)] <- L %*% P[,blockstartindex[j]:(blockstartindex[j+1]-1)] + O %*% rep(1,blockstartindex[j+1]-blockstartindex[j])
     
-      P[,blockstartindex[j]:(blockstartindex[j+1]-1)] <- L %*% P[,blockstartindex[j]:(blockstartindex[j+1]-1)] + O %*% rep(1,blockstartindex[j+1]-blockstartindex[j])
-    
+      }
+      
     }
     
     P <- S %*% P #normalization
