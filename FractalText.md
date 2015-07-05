@@ -9,6 +9,10 @@ Code available here: <https://github.com/ismaelsb/FractalText>
 
 
 
+See the code for character matrices in the link above. It's not showed here.
+
+
+
 
 ```r
 textmatrix <- function (word) {
@@ -81,6 +85,11 @@ textmatrix <- function (word) {
 
 
 ```r
+blockarea <- function (block, D) abs(det(matrix(D[block,3:6],2,2)))
+```
+
+
+```r
 fractaltext <- function(word, dots, iter) {
   
   word <- gsub("[[:digit:]]+","",word) #remove digits
@@ -144,15 +153,6 @@ fractaltext <- function(word, dots, iter) {
   
 }
 ```
-
-
-```r
-blockarea <- function (block, D) abs(det(matrix(D[block,3:6],2,2)))
-```
-
-See also the code for character matrices in the link above
-
-
 
 
 ```r
