@@ -21,8 +21,6 @@ library(ggplot2)
 
 ```
 
-See the code for character matrices in the link above. It's not showed here.
-
 ```{r, echo=FALSE}
 
 charmatrix <- function (c) {
@@ -397,7 +395,7 @@ charmatrix <- function (c) {
 
 ```
 
-```{r, echo=TRUE}
+```{r, echo=F}
 
 textmatrix <- function (word) {
   
@@ -468,7 +466,7 @@ textmatrix <- function (word) {
 
 ```
 
-```{r, echo=TRUE}
+```{r, echo=F}
 
 blockarea <- function (block, D) abs(det(matrix(D[block,3:6],2,2)))
 
